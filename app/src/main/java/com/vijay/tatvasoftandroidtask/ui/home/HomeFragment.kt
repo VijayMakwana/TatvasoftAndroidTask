@@ -37,30 +37,38 @@ class HomeFragment : Fragment() {
 
     private fun setUserListAdapter() {
 
-        mHomeViewModel.mainList.observe(viewLifecycleOwner) {
-            LiveAdapter(it)
-                .map<HomeViewModel.ItemUser>(R.layout.item_user, BR.user)
-                .map<HomeViewModel.ItemImage>(R.layout.item_user_item, BR.userItem)
-                .into(mBinding.listUsers)
+        LiveAdapter(mHomeViewModel.mainList, viewLifecycleOwner)
+            .map<HomeViewModel.ItemUser>(R.layout.item_user, BR.user)
+            .map<HomeViewModel.ItemImage>(R.layout.item_user_item, BR.userItem)
+            .into(mBinding.listUsers)
 
-            (mBinding.listUsers.layoutManager as GridLayoutManager).spanSizeLookup =
-                object : GridLayoutManager.SpanSizeLookup() {
-                    override fun getSpanSize(position: Int): Int {
-                        val item = it[position]
-                        if (item is HomeViewModel.ItemUser) {
-                            return 2
-                        } else if (item is HomeViewModel.ItemImage && item.showFull) {
-                            return 2
-                        } else {
-                            return 1
-                        }
+        (mBinding.listUsers.layoutManager as GridLayoutManager).spanSizeLookup =
+            object : GridLayoutManager.SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int {
+                    val item = mHomeViewModel.mainList.value?.get(position)
+                    if (item is HomeViewModel.ItemUser) {
+                        return 2
+                    } else if (item is HomeViewModel.ItemImage && item.showFull) {
+                        return 2
+                    } else {
+                        return 1
                     }
                 }
-        }
+            }
 
         mBinding.listUsers.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
+                val layoutManager = (mBinding.listUsers.layoutManager as GridLayoutManager)
+                val visibleItemCount: Int = layoutManager.childCount
+                val totalItemCount: Int = layoutManager.itemCount
+                val firstVisibleItemPosition: Int = layoutManager.findFirstVisibleItemPosition()
+
+                mHomeViewModel.listScrolled(
+                    visibleItemCount,
+                    firstVisibleItemPosition,
+                    totalItemCount
+                )
             }
         })
     }

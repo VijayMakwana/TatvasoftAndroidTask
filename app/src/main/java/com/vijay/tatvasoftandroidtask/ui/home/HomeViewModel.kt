@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vijay.tatvasoftandroidtask.api.Const
 import com.vijay.tatvasoftandroidtask.api.data.HomeRepo
 import com.vijay.tatvasoftandroidtask.api.model.User
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +33,7 @@ class HomeViewModel(private val homeRepo: HomeRepo) : ViewModel() {
             totalItemCount && firstVisibleItemPosition >= 0
         ) {
             if (hasMore) {
+                offSet = offSet.plus(Const.PAGE_LIMIT)
                 val result = homeRepo.getUsers(offSet)
                 updateMainList(result.data.users)
             }
@@ -62,8 +64,9 @@ class HomeViewModel(private val homeRepo: HomeRepo) : ViewModel() {
                         }
                     }
                 }
-                (this.value as? ArrayList<Any>)?.addAll(resultList)
-                mMainList.postValue(this.value)
+                val arrayList = this.value as? ArrayList<Any>
+                arrayList?.addAll(resultList)
+                mMainList.postValue(arrayList)
             } else {
                 val resultList = arrayListOf<Any>()
                 inputData.forEach {

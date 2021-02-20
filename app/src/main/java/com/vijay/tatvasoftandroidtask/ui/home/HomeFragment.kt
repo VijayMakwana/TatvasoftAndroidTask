@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.ravikoradiya.liveadapter.LiveAdapter
 import com.vijay.tatvasoftandroidtask.BR
 import com.vijay.tatvasoftandroidtask.R
+import com.vijay.tatvasoftandroidtask.api.Status
 import com.vijay.tatvasoftandroidtask.databinding.FragmentHomeBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -25,6 +27,7 @@ class HomeFragment : Fragment() {
     ): View {
         // Inflate the layout for this fragment
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_home, container, false)
+        mBinding.lifecycleOwner = this
         return mBinding.root
     }
 
@@ -33,6 +36,26 @@ class HomeFragment : Fragment() {
         mHomeViewModel.getUsers()
 
         setUserListAdapter()
+        mHomeViewModel.mainResource.observe(viewLifecycleOwner) {
+            when (it.status) {
+                Status.LOADING -> {
+                    mBinding.progress.visibility = View.VISIBLE
+                }
+                Status.LOADING_MORE -> {
+                    mBinding.progress.visibility = View.GONE
+                    mBinding.progressMore.visibility = View.VISIBLE
+                }
+                Status.SUCCESS -> {
+                    mBinding.progress.visibility = View.GONE
+                    mBinding.progressMore.visibility = View.GONE
+                }
+                Status.ERROR -> {
+                    mBinding.progress.visibility = View.GONE
+                    mBinding.progressMore.visibility = View.GONE
+                    Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun setUserListAdapter() {

@@ -5,8 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vijay.tatvasoftandroidtask.api.Const
+import com.vijay.tatvasoftandroidtask.api.Resource
 import com.vijay.tatvasoftandroidtask.api.data.HomeRepo
 import com.vijay.tatvasoftandroidtask.api.model.User
+import com.vijay.tatvasoftandroidtask.api.model.UserListResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -17,12 +19,21 @@ class HomeViewModel(private val homeRepo: HomeRepo) : ViewModel() {
     private val mMainList = MutableLiveData<List<Any>>()
     val mainList: LiveData<List<Any>> = mMainList
 
+    private val mMainResource = MutableLiveData<Resource<UserListResponse>>()
+    val mainResource: LiveData<Resource<UserListResponse>> = mMainResource
+
     var hasMore: Boolean = true
     var offSet = 0
 
     fun getUsers() = viewModelScope.launch(Dispatchers.IO) {
-        val response = homeRepo.getUsers(offSet)
-        updateMainList(response.data.users)
+        try {
+            mMainResource.postValue(Resource.loading())
+            val response = homeRepo.getUsers(offSet)
+            updateMainList(response.data.users)
+            mMainResource.postValue(Resource.success(response))
+        } catch (e: Exception) {
+            mMainResource.postValue(Resource.error(e.message.toString(), null))
+        }
     }
 
     fun listScrolled(
@@ -34,8 +45,14 @@ class HomeViewModel(private val homeRepo: HomeRepo) : ViewModel() {
         ) {
             if (hasMore) {
                 offSet = offSet.plus(Const.PAGE_LIMIT)
-                val result = homeRepo.getUsers(offSet)
-                updateMainList(result.data.users)
+                try {
+                    mMainResource.postValue(Resource.loadingMore())
+                    val result = homeRepo.getUsers(offSet)
+                    updateMainList(result.data.users)
+                    mMainResource.postValue(Resource.success(result))
+                } catch (e: Exception) {
+                    mMainResource.postValue(Resource.error(e.message.toString(), null))
+                }
             }
         }
     }

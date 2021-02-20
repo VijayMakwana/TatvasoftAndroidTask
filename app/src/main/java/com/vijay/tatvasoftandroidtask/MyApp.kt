@@ -2,9 +2,10 @@ package com.vijay.tatvasoftandroidtask
 
 import android.app.Application
 import com.vijay.tatvasoftandroidtask.api.data.HomeRepo
-import com.vijay.tatvasoftandroidtask.di.NetworkModule
+import com.vijay.tatvasoftandroidtask.ui.home.HomeViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 
@@ -13,10 +14,11 @@ class MyApp : Application() {
         super.onCreate()
 
         val appModules = module {
-            single {
-                NetworkModule()
+            single { HomeRepo() }
+
+            viewModel {
+                HomeViewModel(get())
             }
-            single { HomeRepo(get()) }
         }
         startKoin {
             // Koin Android logger

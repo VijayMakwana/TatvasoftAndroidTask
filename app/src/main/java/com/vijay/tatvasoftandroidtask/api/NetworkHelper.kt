@@ -1,15 +1,14 @@
-package com.vijay.tatvasoftandroidtask.di
+package com.vijay.tatvasoftandroidtask.api
 
 import com.vijay.tatvasoftandroidtask.BuildConfig
-import com.vijay.tatvasoftandroidtask.api.ApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class NetworkModule {
+object NetworkHelper {
 
-    private fun provideOkHttpClient() = if (BuildConfig.DEBUG) {
+    private val okHttpClient = if (BuildConfig.DEBUG) {
         val loggingInterceptor = HttpLoggingInterceptor()
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
         OkHttpClient.Builder()
@@ -19,16 +18,13 @@ class NetworkModule {
         .Builder()
         .build()
 
-    private fun provideRetrofit(
-        okHttpClient: OkHttpClient,
-        BASE_URL: String
-    ): Retrofit =
+    private val retrofit: Retrofit =
         Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(BASE_URL)
+            .baseUrl(Const.BASE_URL)
             .client(okHttpClient)
             .build()
 
-    private fun provideApiService(retrofit: Retrofit): ApiService =
+    fun getApiService(): ApiService =
         retrofit.create(ApiService::class.java)
 }
